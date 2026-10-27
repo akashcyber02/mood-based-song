@@ -1,0 +1,10 @@
+# MoodTunes - Pinned Dependencies
+streamlit==1.64.0
+pandas==3.0.6
+numpy==2.5.3
+scikit-learn==1.9.1
+plotly==7.1.0
+
+# Optional: Deep Learning Emotion Classification via HuggingFace
+# transformers>=4.35.0
+# torch>=2.0.0
