@@ -121,8 +121,8 @@ Follow these steps to run MoodTunes locally on your machine:
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/YOUR-USERNAME/MOOD-BASED-SONGS.git
-cd "MOOD-BASED-SONGS"
+git clone https://github.com/akashcyber02/mood-based-song.git
+cd "mood-based-song"
 ```
 
 ### 2. Create and Activate Virtual Environment
