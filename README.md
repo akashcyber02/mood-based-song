@@ -1,6 +1,8 @@
 ## 💻 Run Locally
 
-**Local URL:** http://localhost:5173
+Start the development server and open:
+
+http://localhost:3000/
 
 ### Steps to run
 
