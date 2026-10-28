@@ -1,3 +1,35 @@
+## 💻 Run Locally
+
+**Local URL:** http://localhost:5173
+
+### Steps to run
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/akashcyber02/mood-based-song.git
+   ```
+
+2. Open the project folder:
+   ```bash
+   cd mood-based-song
+   ```
+
+3. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+4. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+5. Open the URL shown in your terminal, usually:
+   http://localhost:5173
+
+**Note:** The application must be running locally to access this URL. The port may vary depending on your configuration.
+
+
 # MoodTunes 🎵 — AI Mood Music Discovery & Player
 
 > **Pick your mood, then tap a song.** A clean, modern, Spotify-style music discovery web app. Maps human emotional states (**Happy, Sad, Relaxed, Energetic, Focus, Angry**) into multi-dimensional audio feature space, delivering personalized recommendations across **7,200+ Hindi, Punjabi, Haryanvi, and English tracks** (including recent 2024–2026 releases) with in-app audio streaming, an endless non-repeating queue, fuzzy instant search, and a dedicated Web Audio **Bass Lab™** studio.
