@@ -1,21 +1,36 @@
-# Virtual environments
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Production build
+dist/
+build/
+
+# Vite
+.vite/
+
+# Python Virtual Environments
 venv/
 .venv/
 env/
 ENV/
 
-# Python caches
+# Python Caches
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 
-# Environment variables & secrets
+# Environment Variables & Secrets
 .env
 .env.local
+.env.development.local
+.env.test.local
+.env.production.local
 .streamlit/secrets.toml
 
-# OS generated files
+# OS Generated Files
 .DS_Store
 .DS_Store?
 ._*
@@ -24,12 +39,15 @@ __pycache__/
 ehthumbs.db
 Thumbs.db
 
-# Large raw datasets / temporary data dumps
+# Logs & Debugging
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+.pytest_cache/
+
+# Large Raw Archives
 data/raw_*
 data/*.zip
 data/*.tar.gz
-/tmp/
-
-# Logs & tests
-*.log
-.pytest_cache/
