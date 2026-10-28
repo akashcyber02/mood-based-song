@@ -174,12 +174,9 @@ npm run build
 
 ---
 
-## 👥 Team (First-Year B.Tech AI Project)
+## 👥 (First-Year B.Tech AI Project)
 
-- **Akash Dhakad** — Lead Architecture & Full-Stack Development
-- **Team Member 2** — Audio Feature Engineering & ML Pipeline
-- **Team Member 3** — Dataset Curation & Search Optimization
-- **Team Member 4** — Frontend Design & Product Polish
+- **Akash Dhakad** 
 
 ---
 
