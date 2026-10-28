@@ -130,6 +130,12 @@ class RecommenderEngine {
       candidates = this.songs;
     }
 
+    // Prefer candidates with valid playable audio (YouTube ID or iTunes 30s preview)
+    const playableCandidates = candidates.filter((s) => s.youtube_id || s.itunes_preview_url);
+    if (playableCandidates.length >= limit) {
+      candidates = playableCandidates;
+    }
+
     // 2. Score similarity for every candidate
     const scored = candidates.map((song) => {
       const songVector = this.getSongVector(song);
@@ -221,7 +227,13 @@ class RecommenderEngine {
       });
     }
 
-    scored.sort((a, b) => b.matchScore - a.matchScore);
+    scored.sort((a, b) => {
+      // Prioritize playable songs
+      const aPlayable = a.youtube_id || a.itunes_preview_url ? 1 : 0;
+      const bPlayable = b.youtube_id || b.itunes_preview_url ? 1 : 0;
+      if (bPlayable !== aPlayable) return bPlayable - aPlayable;
+      return b.matchScore - a.matchScore;
+    });
     return scored.slice(0, limit);
   }
 }
