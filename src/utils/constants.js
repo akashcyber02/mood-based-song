@@ -147,7 +147,7 @@ export const FEATURE_KEYS = [
   'tempo',
 ];
 
-export const LANGUAGES = ['English', 'Hindi', 'Punjabi'];
+export const LANGUAGES = ['Hindi', 'Punjabi', 'Haryanvi', 'English'];
 
 export const EQ_PRESETS = {
   Normal: { low: 0, mid: 0, high: 0 },

@@ -8,9 +8,9 @@ import {
   RotateCw,
   Volume2,
   VolumeX,
-  Radio,
-  Youtube,
   Zap,
+  ListMusic,
+  ChevronUp,
 } from 'lucide-react';
 
 export default function PlayerBar({
@@ -20,9 +20,8 @@ export default function PlayerBar({
   duration,
   volume,
   isMuted,
-  isBassEnabled,
-  bassBoostDb,
   audioSource,
+  upNextSongs = [],
   onTogglePlay,
   onNext,
   onPrev,
@@ -30,12 +29,12 @@ export default function PlayerBar({
   onSeek,
   onVolumeChange,
   onToggleMute,
-  onToggleBass,
-  onBassDbChange,
+  onOpenBassLab,
   moodColor = '#FFD166',
 }) {
   const [isScrubbing, setIsScrubbing] = useState(false);
   const [scrubValue, setScrubValue] = useState(0);
+  const [showUpNext, setShowUpNext] = useState(false);
 
   const formatTime = (secs) => {
     if (isNaN(secs) || secs < 0) return '0:00';
@@ -66,6 +65,42 @@ export default function PlayerBar({
 
   return (
     <footer className="fixed bottom-0 left-0 right-0 z-40 bg-[#0B0E17]/95 backdrop-blur-2xl border-t border-white/10 px-4 py-3 md:py-3.5 shadow-[0_-10px_30px_rgba(0,0,0,0.8)]">
+      {/* Up Next Mini Popover */}
+      {showUpNext && (
+        <div className="absolute bottom-full right-4 mb-2 w-72 md:w-80 bg-[#121622]/95 backdrop-blur-xl border border-white/10 rounded-2xl p-3 shadow-2xl animate-fadeIn text-xs text-slate-300">
+          <div className="flex items-center justify-between pb-2 border-b border-white/10 font-bold text-white">
+            <span className="flex items-center gap-1.5">
+              <ListMusic className="w-4 h-4 text-pink-400" />
+              UP NEXT (QUEUE)
+            </span>
+            <button
+              onClick={() => setShowUpNext(false)}
+              className="text-slate-400 hover:text-white"
+            >
+              ✕
+            </button>
+          </div>
+          <div className="mt-2 space-y-1.5">
+            {upNextSongs.length === 0 ? (
+              <p className="text-slate-500 py-2 text-center">Refilling queue automatically...</p>
+            ) : (
+              upNextSongs.slice(0, 3).map((song, i) => (
+                <div key={song.id || i} className="flex items-center gap-2.5 p-1.5 rounded-xl bg-white/[0.03]">
+                  <span className="font-mono text-[10px] text-slate-500 w-3">{i + 1}</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold text-white truncate text-xs">{song.track_name}</p>
+                    <p className="text-[10px] text-slate-400 truncate">{song.artists}</p>
+                  </div>
+                  <span className="text-[10px] text-slate-400 px-1.5 py-0.5 rounded bg-white/5">
+                    {song.language}
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2.5 md:gap-4">
         {/* Zone 1: Current Track Info */}
         <div className="flex items-center gap-3 w-full md:w-1/4 min-w-0">
@@ -205,41 +240,31 @@ export default function PlayerBar({
           </div>
         </div>
 
-        {/* Zone 3: Volume & Bass Slider */}
-        <div className="flex items-center justify-end gap-3.5 w-full md:w-1/4">
-          {/* Bass Toggle + Mini Slider */}
-          <div className="flex items-center gap-1.5 bg-white/[0.04] px-2.5 py-1.5 rounded-xl border border-white/5">
-            <button
-              onClick={onToggleBass}
-              className={`flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-lg transition ${
-                isBassEnabled
-                  ? 'bg-pink-500 text-white shadow-[0_0_12px_rgba(236,72,153,0.5)]'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-              title="Toggle Web Audio Bass Boost"
-            >
-              <Zap className="w-3.5 h-3.5" />
-              <span>Bass</span>
-            </button>
+        {/* Zone 3: Up Next, Honest Bass Lab & Volume */}
+        <div className="flex items-center justify-end gap-2.5 md:gap-3 w-full md:w-1/4">
+          {/* Up Next Toggle */}
+          <button
+            onClick={() => setShowUpNext(!showUpNext)}
+            className={`p-2 rounded-xl text-xs font-medium flex items-center gap-1 transition ${
+              showUpNext
+                ? 'bg-white/20 text-white'
+                : 'text-slate-400 hover:text-white hover:bg-white/5'
+            }`}
+            title="View Up Next Queue"
+          >
+            <ListMusic className="w-4 h-4" />
+            <span className="hidden xl:inline">Next</span>
+          </button>
 
-            {isBassEnabled && (
-              <div className="flex items-center gap-1.5 pl-1 animate-fadeIn">
-                <input
-                  type="range"
-                  min={0}
-                  max={15}
-                  step={1}
-                  value={bassBoostDb}
-                  onChange={(e) => onBassDbChange(parseFloat(e.target.value))}
-                  className="w-14 accent-pink-500 h-1 bg-white/20 rounded cursor-pointer"
-                  title={`Bass Boost: +${bassBoostDb} dB`}
-                />
-                <span className="text-[10px] font-mono text-pink-300 w-6 text-right">
-                  +{bassBoostDb}dB
-                </span>
-              </div>
-            )}
-          </div>
+          {/* Honest Bass Lab Trigger Button */}
+          <button
+            onClick={onOpenBassLab}
+            className="flex items-center gap-1.5 bg-pink-500/10 hover:bg-pink-500/20 text-pink-300 border border-pink-500/30 px-3 py-1.5 rounded-xl text-xs font-bold transition shadow-sm"
+            title="Open Bass Lab (30s studio preview with real Web Audio DSP)"
+          >
+            <Zap className="w-3.5 h-3.5 fill-current text-pink-400" />
+            <span>Bass Lab</span>
+          </button>
 
           {/* Volume Control */}
           <div className="flex items-center gap-2">

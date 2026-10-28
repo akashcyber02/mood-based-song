@@ -80,9 +80,18 @@ export default function SongRow({
       {/* Middle: Badges (Language, Year, Source) */}
       <div className="hidden sm:flex items-center gap-2 shrink-0 px-2">
         {/* Language Badge */}
-        <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-white/[0.06] text-slate-300 border border-white/5">
-          {song.language || 'English'}
-        </span>
+        {(() => {
+          const lang = (song.language || 'English').toLowerCase();
+          let style = 'bg-sky-500/10 text-sky-300 border-sky-500/20';
+          if (lang.includes('hindi')) style = 'bg-amber-500/10 text-amber-300 border-amber-500/20';
+          else if (lang.includes('punjabi')) style = 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20';
+          else if (lang.includes('haryanvi')) style = 'bg-purple-500/10 text-purple-300 border-purple-500/20';
+          return (
+            <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${style}`}>
+              {song.language || 'English'}
+            </span>
+          );
+        })()}
 
         {/* Year Badge */}
         {song.year && (

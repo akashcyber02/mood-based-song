@@ -84,47 +84,34 @@ class RecommenderEngine {
   }
 
   /**
-   * Recommends songs by emotional mood.
+   * Recommends songs by emotional mood with no-repeat played-ID tracking and endless candidate pool.
    */
   recommendByMood(moodName, options = {}) {
     if (!this.isReady || !this.songs.length) return [];
 
     const {
       limit = 10,
-      languages = ['English', 'Hindi', 'Punjabi'],
+      languages = ['Hindi', 'Punjabi', 'Haryanvi', 'English'],
       recentOnly = false,
-      minPopularity = 0,
+      excludeIds = new Set(),
       randomize = true,
     } = options;
 
     const moodProfile = MOODS[moodName] || MOODS.Happy;
     const targetScaled = this.scaleVector(moodProfile.targets);
 
-    // 1. Filter candidates
+    // 1. Filter candidates by language and recency
     const allowedLangs = new Set(languages.map((l) => l.toLowerCase()));
     let candidates = this.songs.filter((song) => {
       const lang = (song.language || 'English').toLowerCase();
       if (allowedLangs.size > 0 && !allowedLangs.has(lang)) {
         return false;
       }
-      if (recentOnly && (song.year || 2020) < 2022) {
-        return false;
-      }
-      if (minPopularity > 0 && (song.popularity || 0) < minPopularity) {
+      if (recentOnly && (song.year || 2020) < 2024) {
         return false;
       }
       return true;
     });
-
-    // Fallback if filters were too strict: relax popularity
-    if (candidates.length === 0 && minPopularity > 0) {
-      candidates = this.songs.filter((song) => {
-        const lang = (song.language || 'English').toLowerCase();
-        if (allowedLangs.size > 0 && !allowedLangs.has(lang)) return false;
-        if (recentOnly && (song.year || 2020) < 2022) return false;
-        return true;
-      });
-    }
 
     if (candidates.length === 0) {
       candidates = this.songs;
@@ -142,7 +129,7 @@ class RecommenderEngine {
       const sim = this.cosineSimilarity(targetScaled, songVector);
       return {
         ...song,
-        matchScore: Math.round(sim * 1000) / 10, // e.g. 98.4
+        matchScore: Math.round(sim * 1000) / 10,
         _rawSim: sim,
       };
     });
@@ -150,50 +137,58 @@ class RecommenderEngine {
     // Sort descending by similarity
     scored.sort((a, b) => b.matchScore - a.matchScore);
 
-    // 3. Probabilistic variety sampling
-    if (randomize && scored.length > limit) {
-      const poolSize = Math.min(scored.length, Math.max(limit * 2.5, 25));
-      const pool = scored.slice(0, poolSize);
+    // 3. Take candidate pool of top 100 most similar songs
+    const top100Pool = scored.slice(0, 100);
 
-      // Weighted random sampling without replacement
-      const minSim = pool[pool.length - 1]._rawSim;
-      const weights = pool.map((s) => Math.pow(Math.max(0.01, s._rawSim - minSim + 0.1), 2));
-      const totalWeight = weights.reduce((acc, w) => acc + w, 0);
+    // 4. Filter out already played songs
+    const excludeSet = excludeIds instanceof Set ? excludeIds : new Set(excludeIds || []);
+    let eligiblePool = top100Pool.filter((s) => !excludeSet.has(s.id));
 
-      const sampled = [];
-      const usedIndices = new Set();
-      const countToPick = Math.min(limit, pool.length);
+    // If pool exhausted, reset quietly to full top 100 pool
+    if (eligiblePool.length < limit) {
+      eligiblePool = top100Pool;
+    }
 
-      while (sampled.length < countToPick && usedIndices.size < pool.length) {
-        let rand = Math.random() * totalWeight;
-        let cumulative = 0;
-        let picked = false;
+    if (!randomize || eligiblePool.length <= limit) {
+      return eligiblePool.slice(0, limit);
+    }
 
-        for (let i = 0; i < pool.length; i++) {
-          cumulative += weights[i];
-          if (rand <= cumulative && !usedIndices.has(i)) {
+    // 5. Weighted random selection without replacement
+    const minSim = eligiblePool[eligiblePool.length - 1]._rawSim;
+    const weights = eligiblePool.map((s) => Math.pow(Math.max(0.01, s._rawSim - minSim + 0.1), 2));
+    const totalWeight = weights.reduce((acc, w) => acc + w, 0);
+
+    const sampled = [];
+    const usedIndices = new Set();
+    const countToPick = Math.min(limit, eligiblePool.length);
+
+    while (sampled.length < countToPick && usedIndices.size < eligiblePool.length) {
+      const rand = Math.random() * totalWeight;
+      let cumulative = 0;
+      let picked = false;
+
+      for (let i = 0; i < eligiblePool.length; i++) {
+        cumulative += weights[i];
+        if (rand <= cumulative && !usedIndices.has(i)) {
+          usedIndices.add(i);
+          sampled.push(eligiblePool[i]);
+          picked = true;
+          break;
+        }
+      }
+      if (!picked) {
+        for (let i = 0; i < eligiblePool.length; i++) {
+          if (!usedIndices.has(i)) {
             usedIndices.add(i);
-            sampled.push(pool[i]);
-            picked = true;
+            sampled.push(eligiblePool[i]);
             break;
           }
         }
-        if (!picked) {
-          for (let i = 0; i < pool.length; i++) {
-            if (!usedIndices.has(i)) {
-              usedIndices.add(i);
-              sampled.push(pool[i]);
-              break;
-            }
-          }
-        }
       }
-
-      sampled.sort((a, b) => b.matchScore - a.matchScore);
-      return sampled;
     }
 
-    return scored.slice(0, limit);
+    sampled.sort((a, b) => b.matchScore - a.matchScore);
+    return sampled;
   }
 
   /**
